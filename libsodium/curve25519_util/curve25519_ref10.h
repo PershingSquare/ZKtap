@@ -117,7 +117,7 @@ extern void ge_scalarmult_base(ge_p3 *,const unsigned char *);
 extern void ge_double_scalarmult_vartime(ge_p2 *,const unsigned char *,const ge_p3 *,const unsigned char *);
 extern void ge_scalarmult_vartime(ge_p3 *,const unsigned char *,const ge_p3 *);
 extern void ge_mul_l(ge_p3 *r, const ge_p3 *A);
-extern void curve25519_sub(unsigned char *r,
+extern int curve25519_sub(unsigned char *r,
                                 const unsigned char *p,
                                 const unsigned char *q);
 

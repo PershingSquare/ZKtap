@@ -1407,6 +1407,7 @@ static const fe d = { -10913610, 13857413, -15372611, 6949391,   114729,
 /* sqrt(-1) */
 static const fe sqrtm1 = { -32595792, -7943725,  9377950,  3500415, 12389472,
                            -272473,   -25146209, -2005654, 326686,  11406482 };
+                           
 
 int
 ge_frombytes_negate_vartime(ge_p3 *h, const unsigned char *s)
@@ -1451,6 +1452,44 @@ ge_frombytes_negate_vartime(ge_p3 *h, const unsigned char *s)
     fe_mul(h->T, h->X, h->Y);
 
     return 0;
+}
+
+
+int ge_frombytes_vartime(ge_p3 *h, const uint8_t *s) {
+  fe u;
+  fe v;
+  fe v3;
+  fe vxx;
+  fe check;
+  fe_frombytes(h->Y, s);
+  fe_1(h->Z);
+  fe_sq(u, h->Y);
+  fe_mul(v, u, d);
+  fe_sub(u, u, h->Z); /* u = y^2-1 */
+  fe_add(v, v, h->Z); /* v = dy^2+1 */
+  fe_sq(v3, v);
+  fe_mul(v3, v3, v); /* v3 = v^3 */
+  fe_sq(h->X, v3);
+  fe_mul(h->X, h->X, v);
+  fe_mul(h->X, h->X, u); /* x = uv^7 */
+  fe_pow22523(h->X, h->X); /* x = (uv^7)^((q-5)/8) */
+  fe_mul(h->X, h->X, v3);
+  fe_mul(h->X, h->X, u); /* x = uv^3(uv^7)^((q-5)/8) */
+  fe_sq(vxx, h->X);
+  fe_mul(vxx, vxx, v);
+  fe_sub(check, vxx, u); /* vx^2-u */
+  if (fe_isnonzero(check)) {
+    fe_add(check, vxx, u); /* vx^2+u */
+    if (fe_isnonzero(check)) {
+      return -1;
+    }
+    fe_mul(h->X, h->X, sqrtm1);
+  }
+  if (fe_isnegative(h->X) != (s[31] >> 7)) {
+    fe_neg(h->X, h->X);
+  }
+  fe_mul(h->T, h->X, h->Y);
+  return 0;
 }
 
 /*
@@ -2796,8 +2835,7 @@ sc_reduce(unsigned char *s)
     s[31] = s11 >> 17;
 }
 
-
-void curve25519_sub(unsigned char *r,
+int curve25519_sub(unsigned char *r,
                                 const unsigned char *p,
                                 const unsigned char *q)
 {
@@ -2805,8 +2843,16 @@ void curve25519_sub(unsigned char *r,
     ge_p1p1 r_p1p1;
     ge_cached q_cached;
     
+    if (ge_frombytes_vartime(&p_p3, p) != 0 ||
+        ge_frombytes_negate_vartime(&q_p3, q) != 0)
+        {
+            return -1;
+        }
+    
     ge_p3_to_cached(&q_cached, &q_p3);
-    ge_sub(&r_p1p1, &p_p3, &q_cached);
+    ge_add(&r_p1p1, &p_p3, &q_cached);
     ge_p1p1_to_p3(&r_p3, &r_p1p1);
     ge_p3_tobytes(r, &r_p3);
+    
+    return 0;
 }
