@@ -31,34 +31,34 @@ int main()
     crypto_scalarmult_base(A, a);
     print_256(A);
 
-    printf("\n");
-    printf("************* Commitment ****************\n");
-    uint8_t* t = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    gen_25519(t);
-    uint8_t* T = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    crypto_scalarmult_base(T, t);
-    print_256(T);
+    // printf("\n");
+    // printf("************* Commitment ****************\n");
+    // uint8_t* t = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // gen_25519(t);
+    // uint8_t* T = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // crypto_scalarmult_base(T, t);
+    // print_256(T);
+    //
+    // printf("************* Make Challenge *************\n");
+    // uint8_t* e = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // gen_25519(e);
+    //
+    // // This uses Blake2b
+    // uint8_t* c = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // uint8_t* shared = (uint8_t *) malloc(64 * sizeof(uint8_t));
+    // for(int i = 0; i < 32; i++)
+    // {
+    //     shared[i] = T[i]; // Use tag first to generate challenge.
+    // }
+    //
+    // for(int i = 0; i < 32; i++)
+    // {
+    //     shared[i + 32] = e[i]; // Next use reader.
+    // }
+    // crypto_hash_sha512(c, shared, sizeof(shared)); //hash the concataneted T and e
+    // print_256(c);
 
-    printf("************* Make Challenge *************\n");
-    uint8_t* e = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    gen_25519(e);
-
-    // This uses Blake2b
-    uint8_t* c = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    uint8_t* shared = (uint8_t *) malloc(64 * sizeof(uint8_t));
-    for(int i = 0; i < 32; i++)
-    {
-        shared[i] = T[i]; // Use tag first to generate challenge.
-    }
-
-    for(int i = 0; i < 32; i++)
-    {
-        shared[i + 32] = e[i]; // Next use reader.
-    }
-    crypto_hash_sha512(c, shared, sizeof(shared)); //hash the concataneted T and e
-    print_256(c);
-
-    printf("*************** d = [B^t] ******************\n");
+    printf("*************** d = [B^a] ******************\n");
     uint8_t* d = (uint8_t *) malloc(32 * sizeof(uint8_t));
     uint8_t* f = (uint8_t *) malloc(32 * sizeof(uint8_t));
 
@@ -66,15 +66,14 @@ int main()
                     "Scalar Multiplication of d failed!\n");
     crypto_scalarmult(f, fake, pubkey);
     print_256(d);
-    printf("f\n");
-    print_256(f);
-    printf("************** Respond to challenge *************\n");
-    uint8_t* s = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    crypto_core_ed25519_scalar_mul(s, c, t);
-
-    crypto_core_ed25519_scalar_add(s, s, a);
-
-    crypto_core_ed25519_scalar_add(s, s, d);
+    // print_256(f);
+    printf("************** Respond to challenge (d'=[A^b]) *************\n");
+    // uint8_t* s = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // crypto_core_ed25519_scalar_mul(s, c, t);
+    //
+    // crypto_core_ed25519_scalar_add(s, s, a);
+    //
+    // crypto_core_ed25519_scalar_add(s, s, d);
 
     printf("************* Verification ******************\n");
     uint8_t* d_prime = (uint8_t *) malloc(32 * sizeof(uint8_t));
@@ -85,30 +84,30 @@ int main()
     BOOST_ASSERT_MSG(sodium_memcmp(d, d_prime, sizeof(d)) == 0,
                      "d and d_prime aren't equal");
 
-    uint8_t* S = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    crypto_scalarmult_base(S, s);
-    printf("************** S ***************\n");
-    print_256(S);
-    uint8_t* D_prime = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    crypto_scalarmult_base(D_prime, d_prime);
-    uint8_t* C_prime = (uint8_t *) malloc(32 * sizeof(uint8_t));
-    crypto_scalarmult(C_prime, c, T);
-    uint8_t* A_prime = (uint8_t *) malloc(32 * sizeof(uint8_t));
-
-    crypto_core_ed25519_scalar_mul(A_prime, A, D_prime);
-    print_256(A_prime);
-    crypto_core_ed25519_scalar_mul(A_prime, A_prime, C_prime);
-    print_256(A_prime);
-    print_256(A);
-    if (sodium_memcmp(A_prime, S, sizeof(A)) == 0)
-    {
-        printf("Success!\n");
-    }
-
-    else
-    {
-        printf("Failed!\n");
-    }
+    // uint8_t* S = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // crypto_scalarmult_base(S, s);
+    // printf("************** S ***************\n");
+    // print_256(S);
+    // uint8_t* D_prime = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // crypto_scalarmult_base(D_prime, d_prime);
+    // uint8_t* C_prime = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    // crypto_scalarmult(C_prime, c, T);
+    // uint8_t* A_prime = (uint8_t *) malloc(32 * sizeof(uint8_t));
+    //
+    // crypto_core_ed25519_scalar_mul(A_prime, A, D_prime);
+    // print_256(A_prime);
+    // crypto_core_ed25519_scalar_mul(A_prime, A_prime, C_prime);
+    // print_256(A_prime);
+    // print_256(A);
+    // if (sodium_memcmp(A_prime, S, sizeof(A)) == 0)
+    // {
+    //     printf("Success!\n");
+    // }
+    //
+    // else
+    // {
+    //     printf("Failed!\n");
+    // }
 
 
         uint8_t * msg = (uint8_t *) malloc (32*sizeof(uint8_t));
